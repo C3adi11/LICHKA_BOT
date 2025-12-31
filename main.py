@@ -20,7 +20,9 @@ async def start_handler(message: types.Message):
         "• Текст\n"
         "• Фото (можно с подписью)\n"
         "• Видео\n"
-        "• Документы\n\n"
+        "• Документы\n"
+        "• Голосовые сообщения\n"
+        "• Видеосообщения (кружки)\n\n"
         "🔒 *Всё отправляется анонимно!*",
         parse_mode="Markdown"
     )
@@ -29,15 +31,12 @@ async def start_handler(message: types.Message):
 @dp.message(F.photo)
 async def handle_photo(message: types.Message):
     caption = message.caption or "Без описания"
-    time = message.date.strftime("%H:%M %d.%m.%Y")
-
+    
     admin_text = f"""
 📷 *АНОНИМНОЕ ФОТО*
 
 📝 *Описание:*
 {caption}
-
-🕐 *Время:* {time}
 """
 
     try:
@@ -49,21 +48,19 @@ async def handle_photo(message: types.Message):
         )
         await message.answer("✅ *Фото отправлено анонимно!*", parse_mode="Markdown")
     except Exception as e:
+        logging.error(f"Ошибка отправки фото: {e}")
         await message.answer("❌ *Ошибка отправки фото*", parse_mode="Markdown")
 
 
 @dp.message(F.video)
 async def handle_video(message: types.Message):
     caption = message.caption or "Без описания"
-    time = message.date.strftime("%H:%M %d.%m.%Y")
-
+    
     admin_text = f"""
 🎬 *АНОНИМНОЕ ВИДЕО*
 
 📝 *Описание:*
 {caption}
-
-🕐 *Время:* {time}
 """
 
     try:
@@ -75,19 +72,16 @@ async def handle_video(message: types.Message):
         )
         await message.answer("✅ *Видео отправлено анонимно!*", parse_mode="Markdown")
     except Exception as e:
+        logging.error(f"Ошибка отправки видео: {e}")
         await message.answer("❌ *Ошибка отправки видео*", parse_mode="Markdown")
 
 
 @dp.message(F.document)
 async def handle_document(message: types.Message):
-    time = message.date.strftime("%H:%M %d.%m.%Y")
-
     admin_text = f"""
 📄 *АНОНИМНЫЙ ДОКУМЕНТ*
 
 📁 *Файл:* {message.document.file_name}
-
-🕐 *Время:* {time}
 """
 
     try:
@@ -98,24 +92,58 @@ async def handle_document(message: types.Message):
             parse_mode="Markdown"
         )
         await message.answer("✅ *Документ отправлен анонимно!*", parse_mode="Markdown")
-    except:
+    except Exception as e:
+        logging.error(f"Ошибка отправки документа: {e}")
         await message.answer("❌ *Ошибка отправки документа*", parse_mode="Markdown")
+
+
+@dp.message(F.voice)
+async def handle_voice(message: types.Message):
+    admin_text = "🎤 *АНОНИМНОЕ ГОЛОСОВОЕ СООБЩЕНИЕ*"
+    
+    try:
+        await bot.send_voice(
+            chat_id=ADMIN_ID,
+            voice=message.voice.file_id,
+            caption=admin_text,
+            parse_mode="Markdown"
+        )
+        await message.answer("✅ *Голосовое сообщение отправлено анонимно!*", parse_mode="Markdown")
+    except Exception as e:
+        logging.error(f"Ошибка отправки голосового: {e}")
+        await message.answer("❌ *Ошибка отправки голосового сообщения*", parse_mode="Markdown")
+
+
+@dp.message(F.video_note)
+async def handle_video_note(message: types.Message):
+    admin_text = "🎥 *АНОНИМНОЕ ВИДЕОСООБЩЕНИЕ (КРУЖОК)*"
+    
+    try:
+        await bot.send_video_note(
+            chat_id=ADMIN_ID,
+            video_note=message.video_note.file_id
+        )
+        await bot.send_message(
+            chat_id=ADMIN_ID,
+            text=admin_text,
+            parse_mode="Markdown"
+        )
+        await message.answer("✅ *Видеосообщение отправлено анонимно!*", parse_mode="Markdown")
+    except Exception as e:
+        logging.error(f"Ошибка отправки видеосообщения: {e}")
+        await message.answer("❌ *Ошибка отправки видеосообщения*", parse_mode="Markdown")
 
 
 @dp.message(F.text)
 async def handle_text(message: types.Message):
     if message.text.startswith('/'):
         return
-
-    time = message.date.strftime("%H:%M %d.%m.%Y")
-
+    
     admin_text = f"""
 💬 *АНОНИМНОЕ СООБЩЕНИЕ*
 
 📝 *Текст:*
 {message.text}
-
-🕐 *Время:* {time}
 """
 
     try:
@@ -125,7 +153,8 @@ async def handle_text(message: types.Message):
             parse_mode="Markdown"
         )
         await message.answer("✅ *Сообщение отправлено анонимно!*", parse_mode="Markdown")
-    except:
+    except Exception as e:
+        logging.error(f"Ошибка отправки текста: {e}")
         await message.answer("❌ *Ошибка отправки сообщения*", parse_mode="Markdown")
 
 
